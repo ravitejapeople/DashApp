@@ -12,6 +12,7 @@ with open('data.json') as f:
 df = pd.DataFrame(data)
 
 app = dash.Dash(__name__)
+server=app.server
 
 app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'}, children=[
     html.H1("US State Demographics", style={'textAlign': 'center', 'color': '#333'}),
