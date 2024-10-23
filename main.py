@@ -10,7 +10,7 @@ with open('data.json') as f:
 df = pd.DataFrame(data)
 
 app = dash.Dash(__name__)
-server = app.server
+server=app.server
 
 dark_bg = '#323A3B'
 card_bg = '#425361'  
