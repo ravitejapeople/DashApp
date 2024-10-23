@@ -4,54 +4,70 @@ import plotly.express as px
 import pandas as pd
 import json
 
-
 with open('data.json') as f:
     data = json.load(f)
-
 
 df = pd.DataFrame(data)
 
 app = dash.Dash(__name__)
+server = app.server
 
-app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'margin': '20px'}, children=[
-    html.H1("US State Demographics", style={'textAlign': 'center', 'color': '#333'}),
+dark_bg = '#323A3B'
+card_bg = '#425361'  
+text_color = '#FFFFFF'  
+highlight_color = '#00D8FF'  
+border_radius = '10px'  
+hover_color = '#47476b'
+
+color_palette = px.colors.sequential.Teal  
+
+app.layout = html.Div(style={'fontFamily': 'cursive, sans-serif', 'backgroundColor': dark_bg, 'padding': '20px'}, children=[
+    html.H1("US State Demographics", 
+            style={
+                'fontFamily': 'monospace',
+                'textAlign': 'center', 
+                'color': text_color, 
+                'fontSize': '36px', 
+                'padding': '20px', 
+                'borderRadius': border_radius,
+                'marginBottom': '20px'
+            }),
     
-    html.Div(style={'margin': '20px 0'}),
-    dcc.Dropdown(
-        id='state-dropdown',
-        options=[{'label': state, 'value': state} for state in df['State']],
-        value=df['State'][0], 
-        clearable=False,
-        style={'width': '50%', 'margin': '0 auto'}
-    ),
-    
-    html.Div(style={'margin': '20px 0'}),
-    
-    html.H2("Demographic Distribution for Selected State", style={'textAlign': 'center'}),
-    
-    dcc.Graph(id='pie-chart', style={'display': 'inline-block', 'width': '48%'}),
-    
-    dcc.Graph(id='bar-chart', style={'display': 'inline-block', 'width': '48%'}),
-    
-    html.Div(style={'margin': '20px 0'}),
-    
-    dcc.Graph(id='race-bar-chart', style={'display': 'inline-block', 'width': '48%'}),
-    
-    dcc.Graph(id='race-percentage-bar-chart', style={'display': 'inline-block', 'width': '48%'}),
-    
-    html.Div(style={'margin': '20px 0'}),
-    
-    html.H2("Overall States Population Analysis", style={'textAlign': 'center'}),
-    
-    dcc.Graph(id='scatter-plot', style={'width': '100%', 'height': '400px'})
+    html.Div(style={'width': '30%', 'margin': '0 auto'}, children=[        
+        dcc.Dropdown(
+            id='state-dropdown',
+            options=[{'label': state, 'value': state} for state in df['State']],
+            value=df['State'][0],
+            clearable=False,
+            style={
+                'color': '#333',
+                'fontFamily': 'cursive',
+            }
+        )
+    ]),
+
+    html.Div([
+        html.Div([dcc.Graph(id='pie-chart')], 
+                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'}),
+        
+        html.Div([dcc.Graph(id='bar-chart')], 
+                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'})
+    ], style={'display': 'flex', 'justify-content': 'space-between'}),  
+
+    html.Div([
+        html.Div([dcc.Graph(id='race-bar-chart')], 
+                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'}),
+        
+        html.Div([dcc.Graph(id='race-percentage-bar-chart')], 
+                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'})
+    ], style={'display': 'flex', 'justify-content': 'space-between'}) 
 ])
 
 @app.callback(
     [Output('pie-chart', 'figure'),
      Output('bar-chart', 'figure'),
      Output('race-bar-chart', 'figure'),
-     Output('race-percentage-bar-chart', 'figure'),
-     Output('scatter-plot', 'figure')],
+     Output('race-percentage-bar-chart', 'figure')],
     Input('state-dropdown', 'value')
 )
 def update_graphs(selected_state):
@@ -60,13 +76,15 @@ def update_graphs(selected_state):
     pie_fig = px.pie(
         values=[state_data['Hispanic'], state_data['NonHispanic']],
         names=['Hispanic', 'Non-Hispanic'],
-        title=f'Hispanic vs Non-Hispanic Population in {selected_state}'
+        title=f'Hispanic vs Non-Hispanic Population in {selected_state}',
+        color_discrete_sequence=px.colors.qualitative.Set2
     )
     
     bar_fig = px.bar(
-        x=[state_data['State']], 
+        x=[state_data['State']],
         y=[state_data['Total']],
-        title='Total Population'
+        title='Total Population',
+        color_discrete_sequence=px.colors.qualitative.Vivid 
     )
     
     race_data = ['WhiteTotal', 'BlackTotal', 'IndianTotal', 'AsianTotal', 'OtherTotal']
@@ -76,7 +94,8 @@ def update_graphs(selected_state):
         x=race_data,
         y=race_values,
         title=f'Population Distribution by Race in {selected_state}',
-        labels={'x': 'Race', 'y': 'Population'}
+        labels={'x': 'Race', 'y': 'Population'},
+        color_discrete_sequence=px.colors.qualitative.Safe  
     )
     
     race_percentage_data = ['WhiteTotalPerc', 'BlackTotalPerc', 'IndianTotalPerc', 'AsianTotalPerc', 'OtherTotalPerc']
@@ -86,20 +105,19 @@ def update_graphs(selected_state):
         x=race_percentage_data,
         y=race_percentage_values,
         title=f'Population Percentage by Race in {selected_state}',
-        labels={'x': 'Race', 'y': 'Percentage'}
+        labels={'x': 'Race', 'y': 'Percentage'},
+        color_discrete_sequence=px.colors.qualitative.Prism  
     )
+    
+    for fig in [pie_fig, bar_fig, race_bar_fig, race_percentage_bar_fig]:
+        fig.update_layout(
+            plot_bgcolor=card_bg,  
+            paper_bgcolor=card_bg,
+            font_color=text_color,
+            font_family='cursive'  
+        )
 
-    scatter_fig = px.scatter(
-        df,
-        x='WhiteTotalPerc',  
-        y='Total',         
-        title='Total Population vs. Percentage of White Population (All States)',
-        labels={'Total': 'Total Population', 'WhiteTotalPerc': 'Percentage of White Population'},
-        hover_name='State'
-    )
-
-    return pie_fig, bar_fig, race_bar_fig, race_percentage_bar_fig, scatter_fig
-
+    return pie_fig, bar_fig, race_bar_fig, race_percentage_bar_fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
