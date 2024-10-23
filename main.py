@@ -45,6 +45,13 @@ app.layout = html.Div(style={'fontFamily': 'cursive, sans-serif', 'backgroundCol
             }
         )
     ]),
+     html.Div([
+        html.Div([dcc.Graph(id='race-bar-chart')], 
+                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'}),
+        
+        html.Div([dcc.Graph(id='race-percentage-bar-chart')], 
+                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'})
+    ], style={'display': 'flex', 'justify-content': 'space-between'}),
 
     html.Div([
         html.Div([dcc.Graph(id='pie-chart')], 
@@ -54,13 +61,7 @@ app.layout = html.Div(style={'fontFamily': 'cursive, sans-serif', 'backgroundCol
                  style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'})
     ], style={'display': 'flex', 'justify-content': 'space-between'}),  
 
-    html.Div([
-        html.Div([dcc.Graph(id='race-bar-chart')], 
-                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'}),
-        
-        html.Div([dcc.Graph(id='race-percentage-bar-chart')], 
-                 style={'backgroundColor': card_bg, 'padding': '20px', 'borderRadius': border_radius, 'width': '48%', 'display': 'inline-block', 'margin': '1%'})
-    ], style={'display': 'flex', 'justify-content': 'space-between'}) 
+    
 ])
 
 @app.callback(
@@ -101,12 +102,29 @@ def update_graphs(selected_state):
     race_percentage_data = ['WhiteTotalPerc', 'BlackTotalPerc', 'IndianTotalPerc', 'AsianTotalPerc', 'OtherTotalPerc']
     race_percentage_values = [state_data[perc] for perc in race_percentage_data]
     
-    race_percentage_bar_fig = px.bar(
+    marker_color = '#FF5733'
+
+    race_percentage_bar_fig = px.line(
         x=race_percentage_data,
         y=race_percentage_values,
         title=f'Population Percentage by Race in {selected_state}',
         labels={'x': 'Race', 'y': 'Percentage'},
-        color_discrete_sequence=px.colors.qualitative.Prism  
+        markers=True,
+        line_shape='linear'
+    )
+
+    race_percentage_bar_fig.update_traces(
+        line=dict(color='#00D8FF', width=4),
+        marker=dict(color=marker_color)
+    )
+
+    race_percentage_bar_fig.update_layout(
+        plot_bgcolor=card_bg,  
+        paper_bgcolor=card_bg,
+        font_color=text_color,
+        font_family='cursive',
+        xaxis=dict(gridcolor='#B0B0B0'),
+        yaxis=dict(gridcolor='#B0B0B0')
     )
     
     for fig in [pie_fig, bar_fig, race_bar_fig, race_percentage_bar_fig]:
@@ -118,6 +136,8 @@ def update_graphs(selected_state):
         )
 
     return pie_fig, bar_fig, race_bar_fig, race_percentage_bar_fig
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
